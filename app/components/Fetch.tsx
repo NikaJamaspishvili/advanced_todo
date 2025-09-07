@@ -3,7 +3,6 @@ import { intervalToDuration } from "date-fns";
 import { useEffect, useState } from "react";
 import { getTodos,deleteTodos } from "../server/insert-todo";
 import { AddTodoSection } from "./AddTodoSection";
-import { useTransition } from "react";
 
   interface Array { 
     id: number; 
@@ -17,6 +16,14 @@ import { useTransition } from "react";
 const Fetch = () => {
     const [array,setArray] = useState<Array[]>([]);
     const [isPending,setIsPending] = useState<number | null>(null);
+    const [currentTimeZone,setCurrentTimeZone] = useState("Georgia");
+
+    const times: Record<string, string> = {
+        "en-US": "America/New_York",   // U.S. Eastern Time
+        "ka-GE": "Asia/Tbilisi",       // Georgia (Tbilisi)
+        "it-IT": "Europe/Rome",        // Italy (Rome)
+        "en-AU": "Australia/Sydney",   // Australia (Sydney, common choice)
+    };
     
     useEffect(()=>{
         async function fetch(){
@@ -45,6 +52,24 @@ const Fetch = () => {
 
   return (
     <>
+    <section className="mb-6">
+        <div className="flex items-center gap-3">
+          <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <label className="text-sm font-medium text-gray-700">Timezone:</label>
+          <select 
+            value={currentTimeZone}
+            onChange={(e) => {setCurrentTimeZone(e.target.value)}}
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          >
+            <option value="ka-GE">🇬🇪 Georgia (GET)</option>
+            <option value="en-US">🇺🇸 America (EST)</option>
+            <option value="it-IT">🇮🇹 Italy (CET)</option>
+            <option value="en-AU">🇦🇺 Australia (AEST)</option>
+          </select>
+        </div>
+    </section>
     <section className="mb-10">
         <AddTodoSection setArray={setArray}/>
     </section>
@@ -57,6 +82,7 @@ const Fetch = () => {
               day: "2-digit",
               hour: "2-digit",
               minute: "2-digit",
+              timeZone: times[currentTimeZone]
             }
             const start = new Date();
             const end = new Date(result.limit as Date);
@@ -67,8 +93,8 @@ const Fetch = () => {
             if(timeLeft.hours) timeLeftString += `${timeLeft.hours} Hour `
             if(timeLeft.minutes) timeLeftString += `${timeLeft.minutes} Minute `
 
-            const createdAt = result.createdAt.toLocaleString(undefined,options);
-            const limit = result.limit?.toLocaleString(undefined,options);
+            const createdAt = result.createdAt.toLocaleString(currentTimeZone,options);
+            const limit = result.limit?.toLocaleString(currentTimeZone,options);
 
             if(timeLeftString.length === 0) return null;
 
